@@ -8,6 +8,8 @@ Text-to-speech using ducks. 🦆
 
 Why not? Just type and hear some quacks.
 
+Got to write some terrible CSS and JS code again, so, a win, maybe?
+
 ## Local development
 
 Use a live server, maybe like this:
