@@ -1,6 +1,8 @@
-# quackspeak
+# [quackspeak](https://quackspeak.vercel.app/)
 
 Text-to-speech using ducks. 🦆
+
+![Preview](assets/preview.png)
 
 ## Why?
 
