@@ -14,6 +14,18 @@ const $pitchSlider = document.querySelector('.js-pitch-slider');
 const $intervalSlider = document.querySelector('.js-interval-slider');
 
 /**
+ * Returns the input text that was inserted in the $inputText element.
+ * It makes a treatment to remove whitespaces that are on the start and end
+ * of the text.
+ *
+ * @returns {string} The input text that was inserted in the $inputText element
+ * with some treatments.
+ */
+function getInputText() {
+  return $inputText.value.trim();
+}
+
+/**
  * Returns the pitch rate value based on the value of the $pitchSlider
  * element in the page.
  *
@@ -61,7 +73,8 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
  * element.
  */
 function calculateDialogueTextFontSize() {
-  const numberOfCharacters = $inputText.value.length;
+  const inputText = getInputText();
+  const numberOfCharacters = inputText.length;
   const numberOfCharactersToStartChangingStyle = 90;
 
   return numberOfCharacters > numberOfCharactersToStartChangingStyle
@@ -104,29 +117,6 @@ function addSound(path, index) {
   return index;
 }
 
-function playClip() {
-  clear();
-
-  if ($inputText.value) {
-    /**
-     * TODO: the fact that the dialogue text font size is using `vw` unit is
-     * making it look small in small width screen, such as mobile devices, as
-     * reported in the issue #6.
-     */
-    const dialogueTextFontSize = calculateDialogueTextFontSize() + 'vw';
-    $dialogueText.style.fontSize = dialogueTextFontSize;
-
-    const pitchRate = calculatePitchRate();
-    const interval = calculateInterval();
-
-    speakingInterval = speak(
-      $inputText.value.replace(/(\r|\n)/gm, " "),
-      interval,
-      pitchRate
-    );
-  }
-}
-
 function clear() {
   if (speakingInterval !== "CLEARED") {
     clearInterval(speakingInterval);
@@ -137,8 +127,8 @@ function clear() {
   speakingInterval = "CLEARED";
 }
 
-function speak(text, time, rate, ignore = false) {
-  if (!speaking || ignore) {
+function speak(text, time, rate) {
+  if (!speaking) {
     speaking = true;
 
     var arrayTxt = text.split("");
@@ -197,6 +187,29 @@ function setLimitedInterval(
 
 audioContext = new AudioContext();
 loadSounds();
+
+function playClip() {
+  clear();
+
+  if ($inputText.value) {
+    /**
+     * TODO: the fact that the dialogue text font size is using `vw` unit is
+     * making it look small in small width screen, such as mobile devices, as
+     * reported in the issue #6.
+     */
+    const dialogueTextFontSize = calculateDialogueTextFontSize() + 'vw';
+    $dialogueText.style.fontSize = dialogueTextFontSize;
+
+    const pitchRate = calculatePitchRate();
+    const interval = calculateInterval();
+
+    speakingInterval = speak(
+      $inputText.value,
+      interval,
+      pitchRate
+    );
+  }
+}
 
 (async () => {
   const voices = {
