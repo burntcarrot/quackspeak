@@ -146,6 +146,7 @@ button {
 
 .dialogue-container {
   position: relative;
+  margin-top: 2rem;
 }
 
 #dialogue-text {
@@ -163,6 +164,12 @@ button {
 
 /* Media Queries */
 
+@media (pointer: coarse) {
+  h1 {
+    display: none;
+  }
+}
+
 @media (min-width: 870px) {
   main {
     grid-template-columns: 500px 1fr;
@@ -178,6 +185,10 @@ button {
     border-bottom: var(--border-yellow);
     border-right: none;
     height: fit-content;
+  }
+  
+  .dialogue-container {
+    margin-bottom: 4rem;
   }
 }
 
