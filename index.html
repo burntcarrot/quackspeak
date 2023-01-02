@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css" />
-    <script src="speak.js"></script>
+    <script src="speak.js" defer></script>
     <title>quackspeak: Text-to-quack</title>
     <link
         rel="icon"
@@ -24,7 +24,7 @@
       <div class="container">
         <textarea
           placeholder="Write some text here!"
-          id="inputText"
+          class="js-input-text"
           spellcheck="false"
         ></textarea>
         <div class="sliders">
@@ -36,8 +36,7 @@
                 max="2"
                 value="0.45"
                 step="0.05"
-                class="slider"
-                id="pitchSlider" />
+                class="js-pitch-slider slider" />
           </div>
           <div class="slider-container">
             <div class="text-container">Interval</div>
@@ -47,8 +46,7 @@
                 max="200"
                 value="175"
                 step="1"
-                class="slider"
-                id="intervalSlider" />
+                class="js-interval-slider slider" />
           </div>
         </div>
         <div class="button-container utils-flex-align-center">
@@ -66,7 +64,7 @@
               src="assets/dialogue.png"
               alt=""
               draggable="false" />
-          <div id="dialogue-text"></div>
+          <div class="js-dialogue-text dialogue-text"></div>
         </div>
         <div class="share">
           <p class="utils-text-align-center">

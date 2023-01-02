@@ -149,7 +149,7 @@ button {
   margin-top: 2rem;
 }
 
-#dialogue-text {
+.dialogue-text {
   left: 14%;
   max-height: 70%;
   max-width: 70%;
@@ -158,7 +158,7 @@ button {
   top: 20%;
 }
 
-#dialogue-text::-webkit-scrollbar {
+.dialogue-text::-webkit-scrollbar {
   display: none;
 }
 

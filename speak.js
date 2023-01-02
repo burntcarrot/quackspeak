@@ -1,41 +1,40 @@
 const voicePath = "assets/voice/";
 var audioContext;
 var sounds = [];
-var inputText;
-var dialogueText;
-var pitchSlider;
-var intervalSlider;
 var speaking = false;
 var speakingInterval = "CLEARED";
-var pitchRate = 1;
-var interval = 175;
 
-document.addEventListener("DOMContentLoaded", function (e) {
-  inputText = document.getElementById("inputText");
-  dialogueText = document.getElementById("dialogue-text");
-  pitchSlider = document.getElementById("pitchSlider");
-  intervalSlider = document.getElementById("intervalSlider");
+/** @type {HTMLTextAreaElement} */
+const $inputText = document.querySelector('.js-input-text');
+/** @type {HTMLDivElement} */
+const $dialogueText = document.querySelector('.js-dialogue-text');
+/** @type {HTMLInputElement} */
+const $pitchSlider = document.querySelector('.js-pitch-slider');
+/** @type {HTMLInputElement} */
+const $intervalSlider = document.querySelector('.js-interval-slider');
 
-  pitchSlider.oninput = function () {
-    pitchRate = 0.4 * Math.pow(4, Number(this.value)) + 0.2; // Had to look this up on the internet!
-  };
+/**
+ * Returns the pitch rate value based on the value of the $pitchSlider
+ * element in the page.
+ *
+ * If the $pitchSlider has not been changed, it returns 1 by default.
+ *
+ * @returns {number} The pitch rate.
+ */
+function calculatePitchRate() {
+  return 0.4 * Math.pow(4, Number(this.value)) + 0.2 | 1;
+}
 
-  intervalSlider.oninput = function () {
-    interval = Number(this.value);
-  };
-
-  document.addEventListener("pointerdown", init);
-});
-
-function init() {
-  // Create AudioContext
-  audioContext = new AudioContext();
-
-  // Load sound files.
-  loadSounds();
-
-  // Remove event listener.
-  document.removeEventListener("pointerdown", init);
+/**
+ * Returns the interval based in the value of the $intervalSlider element
+ * in the page.
+ *
+ * If the $intervalSlider has not been changed, it returns 175 by default.
+ *
+ * @returns {number} The interval.
+ */
+function calculateInterval() {
+  return $intervalSlider.value | 175;
 }
 
 function loadSounds() {
@@ -47,7 +46,6 @@ function loadSounds() {
   addSound(voicePath + "woof.mp3", "woof");
 }
 
-// Play from buffer.
 function play(buffer, rate) {
   const source = audioContext.createBufferSource();
   source.buffer = buffer;
@@ -56,14 +54,12 @@ function play(buffer, rate) {
   source.start();
 }
 
-// Load sound buffer from path
 async function load(path) {
   const response = await fetch("./" + path);
   const arrayBuffer = await response.arrayBuffer();
   return audioContext.decodeAudioData(arrayBuffer);
 }
 
-// Add sound file to sounds array
 function addSound(path, index) {
   load(path).then((response) => {
     sounds[index] = response;
@@ -73,36 +69,35 @@ function addSound(path, index) {
 }
 
 function playClip() {
-  // clear speaking intervals and dialogue box
   clear();
 
-  if (inputText.value !== "") {
-    if (inputText.value.length > 90) {
-      dialogueText.style.fontSize =
-        (3 * Math.pow(0.993, inputText.value.length) + 0.9)
+  if ($inputText.value !== "") {
+    if ($inputText.value.length > 90) {
+      $dialogueText.style.fontSize =
+        (3 * Math.pow(0.993, $inputText.value.length) + 0.9)
           .toFixed(1)
-          .toString() + "vw"; // I don't remember how I computed this, but it works
+          .toString() + "vw";
     } else {
-      dialogueText.style.fontSize = "2.5vw";
+      $dialogueText.style.fontSize = "2.5vw";
     }
 
-    // get interval ID
+    const pitchRate = calculatePitchRate();
+    const interval = calculateInterval();
+
     speakingInterval = speak(
-      inputText.value.replace(/(\r|\n)/gm, " "), // Replace newlines with whitespace.
+      $inputText.value.replace(/(\r|\n)/gm, " "),
       interval,
       pitchRate
     );
   }
 }
 
-// Clear speaking intervals and dialogue box
 function clear() {
   if (speakingInterval !== "CLEARED") {
     clearInterval(speakingInterval);
   }
 
-  // reset everything.
-  dialogueText.innerHTML = "";
+  $dialogueText.innerHTML = "";
   speaking = false;
   speakingInterval = "CLEARED";
 }
@@ -111,25 +106,24 @@ function speak(text, time, rate, ignore = false) {
   if (!speaking || ignore) {
     speaking = true;
 
-    // text processing
     var arrayTxt = text.split("");
     arrayTxt.push(" ");
     var length = text.length;
 
+    const pitchRate = calculatePitchRate();
+
     var intervalID = setLimitedInterval(
       function (i) {
         if (text[i] != " ") {
-          // for quack, pitch rate = 1 is fine!
           play(sounds["quack"], pitchRate);
         }
 
-        dialogueText.innerHTML += arrayTxt[i];
+        $dialogueText.innerHTML += arrayTxt[i];
       },
       time,
       length,
       null,
       function () {
-        // set to false when it ends
         speaking = false;
       }
     );
@@ -165,3 +159,7 @@ function setLimitedInterval(
 
   return id;
 }
+
+audioContext = new AudioContext();
+loadSounds();
+
