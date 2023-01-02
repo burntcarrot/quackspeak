@@ -135,37 +135,46 @@ button {
   grid-template-columns: repeat(2, 1fr);
 }
 
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #33aa99;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
 .dialogue-container {
   position: relative;
 }
 
 #dialogue-text {
   left: 14%;
-  max-width: 60%;
   max-height: 70%;
-  overflow-y: hidden;
+  max-width: 70%;
+  overflow: scroll;
   position: absolute;
   top: 20%;
 }
 
-.dialogue-text::-webkit-scrollbar {
+#dialogue-text::-webkit-scrollbar {
   display: none;
 }
 
 /* Media Queries */
 
-@media (min-width: 800px) {
+@media (min-width: 870px) {
   main {
     grid-template-columns: 500px 1fr;
   }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 660px) {
   main {
     grid-template-columns: 1fr;
   }
 
-e .container {
+  .container {
     border-bottom: var(--border-yellow);
     border-right: none;
     height: fit-content;
