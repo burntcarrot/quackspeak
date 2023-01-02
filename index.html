@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css" />
-    <script src="speak.js" defer></script>
+    <script src="script.js" defer></script>
     <title>quackspeak: Text-to-quack</title>
     <link
         rel="icon"
@@ -29,11 +29,8 @@
         ></textarea>
         <select class="js-voice-selector">
           <option default value="quack">Quack</option>
-          <option default value="santa">Santa</option>
           <option default value="bark">Bark</option>
           <option default value="meow">Meow</option>
-          <option default value="moo">Moo</option>
-          <option default value="woof">Woof</option>
         </select>
         <div class="sliders">
           <div class="slider-container">
@@ -42,7 +39,7 @@
                 type="range"
                 min="0"
                 max="2"
-                value="0.45"
+                value="0.5"
                 step="0.05"
                 class="js-pitch-slider slider" />
           </div>
@@ -58,7 +55,7 @@
           </div>
         </div>
         <div class="button-container utils-flex-align-center">
-          <button onclick="speak()">Say it!</button>
+          <button class="js-say-it-button">Say it!</button>
         </div>
       </div>
 
