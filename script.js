@@ -8,6 +8,17 @@
     bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
     meow: await createDecodedAudioDataFromVoiceFile('meow.wav'),
   };
+  /**
+   * An array that contains all the ids of the timeouts set by the `speak`
+   * function. Each timeout is corresponded to the speak of one of the
+   * characters inserted in the $inputText element.
+   *
+   * This array needs to exist to the code be able to cancel previous timeouts
+   * avoiding the audio to overlap each other.
+   *
+   * @type {Array<number>}
+   */
+  let speakTimeoutsIds = [];
 
   /** @type {HTMLTextAreaElement} */
   const $inputText = document.querySelector('.js-input-text');
@@ -78,24 +89,6 @@
   }
 
   /**
-   * Calculates the font size in rem units to be used in the $dialogueText element
-   * based on the quantity of characters that were inserted in the $inputText
-   * element.
-   * 
-   * @returns {number} The font size in rem units to be used in the $dialogueText
-   * element.
-   */
-  function calculateDialogueTextFontSize() {
-    const inputText = getInputText();
-    const numberOfCharacters = inputText.length;
-    const numberOfCharactersToStartChangingStyle = 90;
-
-    return numberOfCharacters > numberOfCharactersToStartChangingStyle
-    ? 3 * 0.993 ** numberOfCharacters + 0.9
-    : 2.5
-  }
-
-  /**
    * Plays the audio from the decoded audio data.
    *
    * @param {AudioBuffer} decodedAudioData An audio buffer that contains the
@@ -114,10 +107,25 @@
   }
 
   /**
+   * Cancels previous speak timeouts to avoid the audio to overlap each other
+   * and make too much noise.
+   */
+  function cancelPreviousSpeakTimeouts() {
+    if (speakTimeoutsIds.length > 0) {
+      speakTimeoutsIds.forEach((speakTimeoutId) => {
+        clearTimeout(speakTimeoutId);
+      });
+      speakTimeoutsIds = [];
+    }
+  }
+
+  /**
    * Creates and plays a speak with the input text inserted in the $inputText
    * element.
    */
   function speak() {
+    cancelPreviousSpeakTimeouts();
+
     const inputText = getInputText();
     const selectedVoiceDecodedAudioData =
         localVoicesDecodedAudioData[$voiceSelector.value];
@@ -125,17 +133,16 @@
     const intervalInMiliseconds = calculateIntervalInMiliseconds();
 
     /**
-     * TODO: needs to add a way to cancel previous intervals set by the setTimeout
-     * function to avoid multiple audios being played.
+     * TODO: add a way to put each character in the $dialogueText element.
      */
     for (
         let characterIndex = 0;
         characterIndex < numberOfCharacters;
         characterIndex++
     ) {
-      setTimeout(() => {
+      speakTimeoutsIds.push(setTimeout(() => {
         playDecodedAudioData(selectedVoiceDecodedAudioData);
-      }, intervalInMiliseconds * characterIndex);
+      }, intervalInMiliseconds * characterIndex));
     }
   }
 })();
