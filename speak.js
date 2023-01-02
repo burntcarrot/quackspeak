@@ -1,4 +1,4 @@
-const voicePath = "assets/voice/";
+const voicePath = "assets/voices/";
 var audioContext;
 var sounds = [];
 var speaking = false;
@@ -35,6 +35,21 @@ function calculatePitchRate() {
  */
 function calculateInterval() {
   return $intervalSlider.value | 175;
+}
+
+/**
+ * Returns the decoded audio data from a voice file in the server.
+ *
+ * @param {string} The file name that is under the path `assets/voices/`,
+ * for example: `quack.mp3`.
+ */
+async function createDecodedAudioDataFromVoiceFile(fileName) {
+  const voiceFileDirectoryPath = 'assets/voices/' + fileName;
+  const fileResponse = await fetch(voiceFileDirectoryPath);
+  const arrayBuffer = await fileResponse.arrayBuffer();
+  const audioContext = new AudioContext();
+
+  return audioContext.decodeAudioData(arrayBuffer);
 }
 
 function loadSounds() {
@@ -162,4 +177,15 @@ function setLimitedInterval(
 
 audioContext = new AudioContext();
 loadSounds();
+
+(async () => {
+  const voices = {
+    quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
+    santa: await createDecodedAudioDataFromVoiceFile('santa.wav'),
+    bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
+    meow: await createDecodedAudioDataFromVoiceFile('meow.wav'),
+    moo: await createDecodedAudioDataFromVoiceFile('moo.mp3'),
+    woof: await createDecodedAudioDataFromVoiceFile('woof.mp3'),
+  };
+})();
 
