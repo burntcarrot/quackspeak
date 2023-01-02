@@ -23,10 +23,18 @@
     <main>
       <div class="container">
         <textarea
-          placeholder="Write some text here!"
-          class="js-input-text"
-          spellcheck="false"
+            placeholder="Write some text here!"
+            class="js-input-text"
+            spellcheck="false"
         ></textarea>
+        <select class="js-voice-selector">
+          <option default value="quack">Quack</option>
+          <option default value="santa">Santa</option>
+          <option default value="bark">Bark</option>
+          <option default value="meow">Meow</option>
+          <option default value="moo">Moo</option>
+          <option default value="woof">Woof</option>
+        </select>
         <div class="sliders">
           <div class="slider-container">
             <div class="text-container">Pitch</div>
@@ -50,7 +58,7 @@
           </div>
         </div>
         <div class="button-container utils-flex-align-center">
-          <button onclick="playClip()">Say it!</button>
+          <button onclick="speak()">Say it!</button>
         </div>
       </div>
 

@@ -1,9 +1,3 @@
-const voicePath = "assets/voices/";
-var audioContext;
-var sounds = [];
-var speaking = false;
-var speakingInterval = "CLEARED";
-
 /** @type {HTMLTextAreaElement} */
 const $inputText = document.querySelector('.js-input-text');
 /** @type {HTMLDivElement} */
@@ -12,6 +6,7 @@ const $dialogueText = document.querySelector('.js-dialogue-text');
 const $pitchSlider = document.querySelector('.js-pitch-slider');
 /** @type {HTMLInputElement} */
 const $intervalSlider = document.querySelector('.js-interval-slider');
+const $voiceSelector = document.querySelector('.js-voice-selector');
 
 /**
  * Returns the input text that was inserted in the $inputText element.
@@ -83,136 +78,34 @@ function calculateDialogueTextFontSize() {
 }
 
 /**
- * Plays audio 
+ * Plays the audio from the decoded audio data.
+ *
+ * @param {AudioBuffer} decodedAudioData An audio buffer that contains the
+ * decoded audio data. It may be a result of the function
+ * `createDecodedAudioDataFromVoiceFile`.
+ *
+ * @param {number} The pitch rate to be used when playing the audio data.
  */
-function play(buffer, rate) {
+function playDecodedAudioData(decodedAudioData, pitchRate) {
   const audioContext = new AudioContext();
   const source = audioContext.createBufferSource();
-  source.buffer = buffer;
-  source.playbackRate.value = rate;
+
+  source.buffer = decodedAudioData;
+  source.playbackRate.value = pitchRate;
   source.connect(audioContext.destination);
   source.start();
 }
 
-function loadSounds() {
-  addSound(voicePath + "quack.mp3", "quack");
-  addSound(voicePath + "santa.wav", "santa");
-  addSound(voicePath + "bark.wav", "bark");
-  addSound(voicePath + "meow.wav", "meow");
-  addSound(voicePath + "moo.mp3", "moo");
-  addSound(voicePath + "woof.mp3", "woof");
-}
-
-async function load(path) {
-  const response = await fetch("./" + path);
-  const arrayBuffer = await response.arrayBuffer();
-  return audioContext.decodeAudioData(arrayBuffer);
-}
-
-function addSound(path, index) {
-  load(path).then((response) => {
-    sounds[index] = response;
-  });
-
-  return index;
-}
-
-function clear() {
-  if (speakingInterval !== "CLEARED") {
-    clearInterval(speakingInterval);
-  }
-
-  $dialogueText.innerHTML = "";
-  speaking = false;
-  speakingInterval = "CLEARED";
-}
-
-function speak(text, time, rate) {
-  if (!speaking) {
-    speaking = true;
-
-    var arrayTxt = text.split("");
-    arrayTxt.push(" ");
-    var length = text.length;
-
-    const pitchRate = calculatePitchRate();
-
-    var intervalID = setLimitedInterval(
-      function (i) {
-        if (text[i] != " ") {
-          play(sounds["quack"], pitchRate);
-        }
-
-        $dialogueText.innerHTML += arrayTxt[i];
-      },
-      time,
-      length,
-      null,
-      function () {
-        speaking = false;
-      }
-    );
-
-    return intervalID;
-  }
-}
-
-function setLimitedInterval(
-  func,
-  time,
-  iterations,
-  beginning = null,
-  ending = null
-) {
-  var i = 0;
-
-  if (beginning !== null) {
-    beginning();
-  }
-
-  var id = setInterval(function () {
-    func(i);
-    i++;
-
-    if (i === iterations) {
-      if (ending !== null) {
-        ending();
-      }
-      clearInterval(id);
-    }
-  }, time);
-
-  return id;
-}
-
-audioContext = new AudioContext();
-loadSounds();
-
-function playClip() {
-  clear();
-
-  if ($inputText.value) {
-    /**
-     * TODO: the fact that the dialogue text font size is using `vw` unit is
-     * making it look small in small width screen, such as mobile devices, as
-     * reported in the issue #6.
-     */
-    const dialogueTextFontSize = calculateDialogueTextFontSize() + 'vw';
-    $dialogueText.style.fontSize = dialogueTextFontSize;
-
-    const pitchRate = calculatePitchRate();
-    const interval = calculateInterval();
-
-    speakingInterval = speak(
-      $inputText.value,
-      interval,
-      pitchRate
-    );
-  }
-}
-
-(async () => {
-  const voices = {
+/**
+ * Creates and plays a speak with the input text inserted in the $inputText
+ * element.
+ */
+async function speak() {
+  /**
+   * An object containing the decoded audio data of the voices that are
+   * stored locally in the server.
+   */
+  const localVoicesDecodedAudioData = {
     quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
     santa: await createDecodedAudioDataFromVoiceFile('santa.wav'),
     bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
@@ -220,5 +113,9 @@ function playClip() {
     moo: await createDecodedAudioDataFromVoiceFile('moo.mp3'),
     woof: await createDecodedAudioDataFromVoiceFile('woof.mp3'),
   };
-})();
+  const inputText = getInputText();
+  const selectedVoiceDecodedAudioData =
+      localVoicesDecodedAudioData[$voiceSelector.value];
+  const pitchRate = calculatePitchRate();
+}
 
