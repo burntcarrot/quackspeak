@@ -109,6 +109,24 @@ textarea:focus {
   outline: none;
 }
 
+.voice-selector-container {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.voice-selector {
+  width: 100%;
+}
+
+select {
+  background: white;
+  border-radius: var(--small-border-radius);
+  border: var(--border-very-light-blue);
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+
 input[type='range'] {
   background: white;
   appearance: none;
