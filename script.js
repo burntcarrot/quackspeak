@@ -33,7 +33,10 @@
   /** @type {HTMLButtonElement} */
   const $sayItButton = document.querySelector('.js-say-it-button');
 
-  $sayItButton.addEventListener('pointerdown', speak);
+  $sayItButton.addEventListener('pointerdown', () => {
+    speak();
+    writeDialogueText();
+  });
 
   /**
    * Returns the input text that was inserted in the $inputText element.
@@ -111,12 +114,34 @@
    * and make too much noise.
    */
   function cancelPreviousSpeakTimeouts() {
-    if (speakTimeoutsIds.length > 0) {
+    const hasSpeakTimeoutIds = speakTimeoutsIds.length > 0;
+    if (hasSpeakTimeoutIds) {
       speakTimeoutsIds.forEach((speakTimeoutId) => {
         clearTimeout(speakTimeoutId);
       });
       speakTimeoutsIds = [];
     }
+  }
+
+  /**
+   * Writes the input text inserted at the $inputText element to the
+   * $dialogueText element.
+   */
+  function writeDialogueText() {
+    const inputText = getInputText();
+    const inputTextCharacters = inputText.split('');
+    const intervalInMiliseconds = calculateIntervalInMiliseconds();
+
+    $dialogueText.innerHTML = '';
+
+    inputTextCharacters.forEach((
+        inputTextCharacter,
+        inputTextCharacterIndex
+    ) => {
+      speakTimeoutsIds.push(setTimeout(() => {
+        $dialogueText.innerHTML += inputTextCharacter;
+      }, intervalInMiliseconds * inputTextCharacterIndex));
+    });
   }
 
   /**
@@ -127,23 +152,19 @@
     cancelPreviousSpeakTimeouts();
 
     const inputText = getInputText();
+    const inputTextCharacters = inputText.split('');
     const selectedVoiceDecodedAudioData =
         localVoicesDecodedAudioData[$voiceSelector.value];
-    const numberOfCharacters = inputText.length;
     const intervalInMiliseconds = calculateIntervalInMiliseconds();
 
-    /**
-     * TODO: add a way to put each character in the $dialogueText element.
-     */
-    for (
-        let characterIndex = 0;
-        characterIndex < numberOfCharacters;
-        characterIndex++
-    ) {
+    inputTextCharacters.forEach((
+        inputTextCharacter,
+        inputTextCharacterIndex
+    ) => {
       speakTimeoutsIds.push(setTimeout(() => {
         playDecodedAudioData(selectedVoiceDecodedAudioData);
-      }, intervalInMiliseconds * characterIndex));
-    }
+      }, intervalInMiliseconds * inputTextCharacterIndex));
+    });
   }
 })();
 
