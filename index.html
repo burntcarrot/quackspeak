@@ -2,18 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="style.css" />
     <script src="speak.js"></script>
     <title>quackspeak: Text-to-quack</title>
     <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🦆</text></svg>"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500&display=swap"
-      rel="stylesheet"
+        rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2210 0 100 100%22><text y=%22.90em%22 font-size=%2290%22>🦆</text></svg>"
     />
   </head>
 
@@ -21,61 +16,65 @@
     <img
       class="background-img"
       src="assets/ducks-background.png"
-      alt="duck background"
+      alt=""
+      draggable="false"
     />
 
-    <div class="container">
-      <div class="textbox-container">
+    <main>
+      <div class="container">
         <textarea
-          placeholder="write some text here.."
+          placeholder="Write some text here!"
           id="inputText"
+          spellcheck="false"
         ></textarea>
+        <div class="sliders">
+          <div class="slider-container">
+            <div class="text-container">Pitch</div>
+            <input
+                type="range"
+                min="0"
+                max="2"
+                value="0.45"
+                step="0.05"
+                class="slider"
+                id="pitchSlider" />
+          </div>
+          <div class="slider-container">
+            <div class="text-container">Interval</div>
+            <input
+                type="range"
+                min="50"
+                max="200"
+                value="175"
+                step="1"
+                class="slider"
+                id="intervalSlider" />
+          </div>
+        </div>
+        <div class="button-container utils-flex-align-center">
+          <button onclick="playClip()">Say it!</button>
+        </div>
       </div>
-      <div class="slider-container">
-        <div class="text-container">Pitch</div>
-        <input
-          type="range"
-          min="0"
-          max="2"
-          value="0.45"
-          step="0.05"
-          class="slider"
-          id="pitchSlider"
-        />
-      </div>
-      <div class="slider-container">
-        <div class="text-container">Interval</div>
-        <input
-          type="range"
-          min="50"
-          max="200"
-          value="175"
-          step="1"
-          class="slider"
-          id="intervalSlider"
-        />
-      </div>
-      <div class="button-container">
-        <button onclick="playClip()">Say it!</button>
-      </div>
-    </div>
 
-    <div class="dialogue">
-      <div class="heading">
-        <h1>quackSpeak 🦆</h1>
+      <div class="dialogue">
+        <div class="heading">
+          <h1 class="utils-text-align-center">quackSpeak 🦆</h1>
+        </div>
+        <div class="dialogue-container utils-flex-align-center">
+          <img
+              id="dialogue-box"
+              src="assets/dialogue.png"
+              alt=""
+              draggable="false" />
+          <div id="dialogue-text"></div>
+        </div>
+        <div class="share">
+          <p class="utils-text-align-center">
+            It's open source! Check out the repo
+            <a href="https://github.com/burntcarrot/quackspeak">here</a>.
+          </p>
+        </div>
       </div>
-      <div class="dialogue-container">
-        <img id="dialogue-box" src="assets/dialogue.png" alt="Dialogue box" />
-        <div id="dialogue-text"></div>
-      </div>
-      <div class="share">
-        <p>
-          It's open source! Check out the repo here:
-          <a href="https://github.com/burntcarrot/quackspeak"
-            >https://github.com/burntcarrot/quackspeak</a
-          >
-        </p>
-      </div>
-    </div>
+    </main>
   </body>
 </html>
