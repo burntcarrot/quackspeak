@@ -52,6 +52,35 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
   return audioContext.decodeAudioData(arrayBuffer);
 }
 
+/**
+ * Calculates the font size in rem units to be used in the $dialogueText element
+ * based on the quantity of characters that were inserted in the $inputText
+ * element.
+ * 
+ * @returns {number} The font size in rem units to be used in the $dialogueText
+ * element.
+ */
+function calculateDialogueTextFontSize() {
+  const numberOfCharacters = $inputText.value.length;
+  const numberOfCharactersToStartChangingStyle = 90;
+
+  return numberOfCharacters > numberOfCharactersToStartChangingStyle
+  ? 3 * 0.993 ** numberOfCharacters + 0.9
+  : 2.5
+}
+
+/**
+ * Plays audio 
+ */
+function play(buffer, rate) {
+  const audioContext = new AudioContext();
+  const source = audioContext.createBufferSource();
+  source.buffer = buffer;
+  source.playbackRate.value = rate;
+  source.connect(audioContext.destination);
+  source.start();
+}
+
 function loadSounds() {
   addSound(voicePath + "quack.mp3", "quack");
   addSound(voicePath + "santa.wav", "santa");
@@ -59,14 +88,6 @@ function loadSounds() {
   addSound(voicePath + "meow.wav", "meow");
   addSound(voicePath + "moo.mp3", "moo");
   addSound(voicePath + "woof.mp3", "woof");
-}
-
-function play(buffer, rate) {
-  const source = audioContext.createBufferSource();
-  source.buffer = buffer;
-  source.playbackRate.value = rate;
-  source.connect(audioContext.destination);
-  source.start();
 }
 
 async function load(path) {
@@ -86,15 +107,14 @@ function addSound(path, index) {
 function playClip() {
   clear();
 
-  if ($inputText.value !== "") {
-    if ($inputText.value.length > 90) {
-      $dialogueText.style.fontSize =
-        (3 * Math.pow(0.993, $inputText.value.length) + 0.9)
-          .toFixed(1)
-          .toString() + "vw";
-    } else {
-      $dialogueText.style.fontSize = "2.5vw";
-    }
+  if ($inputText.value) {
+    /**
+     * TODO: the fact that the dialogue text font size is using `vw` unit is
+     * making it look small in small width screen, such as mobile devices, as
+     * reported in the issue #6.
+     */
+    const dialogueTextFontSize = calculateDialogueTextFontSize() + 'vw';
+    $dialogueText.style.fontSize = dialogueTextFontSize;
 
     const pitchRate = calculatePitchRate();
     const interval = calculateInterval();
