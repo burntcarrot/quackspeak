@@ -51,6 +51,7 @@
 body,
 input,
 textarea,
+select,
 button {
   font-family: "noto sans", "sans-serif";
 }
@@ -117,6 +118,7 @@ textarea:focus {
 
 .voice-selector {
   width: 100%;
+  cursor: pointer;
 }
 
 select {
@@ -174,6 +176,7 @@ button {
   overflow: scroll;
   position: absolute;
   top: 20%;
+  font-size: 1.5rem;
 }
 
 .dialogue-text::-webkit-scrollbar {

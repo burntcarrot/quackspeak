@@ -28,8 +28,8 @@
             spellcheck="false"
         ></textarea>
         <div class="voice-selector-container">
-          <span class="text-container">Voice</span>
-          <select class="js-voice-selector voice-selector">
+          <label class="text-container" for="voice-selector">Voice</label>
+          <select id="voice-selector" class="js-voice-selector voice-selector">
             <option default value="quack">Quack</option>
             <option default value="bark">Bark</option>
             <option default value="meow">Meow</option>
@@ -37,23 +37,25 @@
         </div>
         <div class="sliders">
           <div class="slider-container">
-            <span class="text-container">Pitch</span>
+            <label class="text-container" for="pitch-slider">Pitch</label>
             <input
                 type="range"
                 min="0"
                 max="2"
                 value="0.5"
                 step="0.05"
+                id="pitch-slider"
                 class="js-pitch-slider slider" />
           </div>
           <div class="slider-container">
-            <span class="text-container">Interval</span>
+            <label class="text-container" for="interval-slider">Interval</label>
             <input
                 type="range"
                 min="50"
                 max="200"
                 value="175"
                 step="1"
+                id="interval-slider"
                 class="js-interval-slider slider" />
           </div>
         </div>
