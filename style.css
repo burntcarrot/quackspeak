@@ -51,6 +51,7 @@
 body,
 input,
 textarea,
+select,
 button {
   font-family: "noto sans", "sans-serif";
 }
@@ -109,6 +110,25 @@ textarea:focus {
   outline: none;
 }
 
+.voice-selector-container {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.voice-selector {
+  width: 100%;
+  cursor: pointer;
+}
+
+select {
+  background: white;
+  border-radius: var(--small-border-radius);
+  border: var(--border-very-light-blue);
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+
 input[type='range'] {
   background: white;
   appearance: none;
@@ -149,16 +169,17 @@ button {
   margin-top: 2rem;
 }
 
-#dialogue-text {
+.dialogue-text {
   left: 14%;
   max-height: 70%;
   max-width: 70%;
   overflow: scroll;
   position: absolute;
   top: 20%;
+  font-size: 1.5rem;
 }
 
-#dialogue-text::-webkit-scrollbar {
+.dialogue-text::-webkit-scrollbar {
   display: none;
 }
 
