@@ -11,7 +11,7 @@
  * AudioContext was not allowed to start`, loading the local voices only when
  * the user interacts with the page.
  */
-let localVoicesDecodedAudioData;
+let localVoices;
 /**
  * An array that contains all the ids of the timeouts set by the `speak`
  * function. Each timeout is corresponded to the speak of one of the
@@ -159,9 +159,9 @@ function writeDialogueText() {
  *
  * @async
  */
-async function loadLocalVoicesDecodedAudioData() {
-  if (!localVoicesDecodedAudioData) {
-    localVoicesDecodedAudioData = {
+async function loadLocalVoices() {
+  if (!localVoices) {
+    localVoices = {
       quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
       bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
       meow: await createDecodedAudioDataFromVoiceFile('meow.wav'),
@@ -176,17 +176,17 @@ async function loadLocalVoicesDecodedAudioData() {
  * @async
  */
 async function speak() {
-  await loadLocalVoicesDecodedAudioData();
+  await loadLocalVoices();
   cancelPreviousSpeakTimeouts();
 
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
   const selectedVoiceDecodedAudioData =
-      localVoicesDecodedAudioData[$voiceSelector.value];
+      localVoices[$voiceSelector.value];
   const intervalInMiliseconds = calculateIntervalInMiliseconds();
 
   inputTextCharacters.forEach((
-      inputTextCharacter,
+      _inputTextCharacter,
       inputTextCharacterIndex
   ) => {
     speakTimeoutsIds.push(setTimeout(() => {
