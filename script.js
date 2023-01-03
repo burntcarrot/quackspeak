@@ -2,12 +2,17 @@
   /**
    * An object containing the decoded audio data of the voices that are
    * stored locally in the server.
+   *
+   * Each key of this object is the name of the voice file and also corresponds
+   * to one of the options of the voice selector in the page.
+   *
+   * This variable starts `undefined`, and is only defined when the user
+   * interacts with the page by using the function
+   * `loadLocalVoicesDecodedAudioData`. This is needed to fix the error `The
+   * AudioContext was not allowed to start`, loading the local voices only when
+   * the user interacts with the page.
    */
-  const localVoicesDecodedAudioData = {
-    quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
-    bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
-    meow: await createDecodedAudioDataFromVoiceFile('meow.wav'),
-  };
+  let localVoicesDecodedAudioData;
   /**
    * An array that contains all the ids of the timeouts set by the `speak`
    * function. Each timeout is corresponded to the speak of one of the
@@ -33,8 +38,8 @@
   /** @type {HTMLButtonElement} */
   const $sayItButton = document.querySelector('.js-say-it-button');
 
-  $sayItButton.addEventListener('pointerdown', () => {
-    speak();
+  $sayItButton.addEventListener('pointerdown', async () => {
+    await speak();
     writeDialogueText();
   });
 
@@ -43,8 +48,8 @@
    * It makes a treatment to remove whitespaces that are on the start and end
    * of the text.
    *
-   * @returns {string} The input text that was inserted in the $inputText element
-   * with some treatments.
+   * @returns {string} The input text that was inserted in the $inputText
+   * element with some treatments.
    */
   function getInputText() {
     return $inputText.value.trim();
@@ -54,8 +59,7 @@
    * Returns the pitch rate value based on the value of the $pitchSlider
    * element in the page.
    *
-   * If the $pitchSlider has not been changed, it returns 1 by default, that is
-   * the value set in the HTML page.
+   * If the $pitchSlider has not been changed, it returns 1 by default.
    *
    * @returns {number} The pitch rate.
    */
@@ -64,23 +68,28 @@
   }
 
   /**
-   * Returns the speak interval based in the value of the $intervalSlider element
-   * in the page.
+   * Returns the speak interval in miliseconds based on the value of the
+   * $intervalSlider element in the page.
    *
    * If the $intervalSlider has not been changed, it returns 175 by default,
    * that is the value set in the HTML page.
    *
-   * @returns {number} The interval in miliseconds.
+   * @returns {number} The speak interval in miliseconds.
    */
   function calculateIntervalInMiliseconds() {
     return $intervalSlider.value;
   }
 
   /**
-   * Returns the decoded audio data from a voice file in the server.
+   * Returns a promise that gives the decoded audio data from a voice file in
+   * the server.
    *
-   * @param {string} The file name that is under the path `assets/voices/`,
-   * for example: `quack.mp3`.
+   * @async
+   *
+   * @param {string} fileName The file name that is under the path
+   * `assets/voices/`, for example: `quack.mp3`.
+   *
+   * @returns {Promise<AudioBuffer>} The decoded audio data.
    */
   async function createDecodedAudioDataFromVoiceFile(fileName) {
     const voiceFileDirectoryPath = 'assets/voices/' + fileName;
@@ -145,10 +154,30 @@
   }
 
   /**
+   * Loads the local voices. This is needed to fix the error
+   * `The AudioContext was not allowed to start`, loading the local voices only
+   * when the user interact with the page.
+   *
+   * @async
+   */
+  async function loadLocalVoicesDecodedAudioData() {
+    if (!localVoicesDecodedAudioData) {
+      localVoicesDecodedAudioData = {
+        quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
+        bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
+        meow: await createDecodedAudioDataFromVoiceFile('meow.wav'),
+      };
+    }
+  }
+
+  /**
    * Creates and plays a speak with the input text inserted in the $inputText
    * element.
+   *
+   * @async
    */
-  function speak() {
+  async function speak() {
+    await loadLocalVoicesDecodedAudioData();
     cancelPreviousSpeakTimeouts();
 
     const inputText = getInputText();
