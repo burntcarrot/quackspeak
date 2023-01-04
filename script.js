@@ -23,7 +23,14 @@ let localVoices;
  * @type {Array<number>}
  */
 let speakTimeoutsIds = [];
-
+/**
+ * An array that contains all the random intervals created whenever there is
+ * an whitespace in the input text. This is needed for the `setTimeout`
+ * functions used by the `speak` function.
+ *
+ * @type {Array<number>}
+ */
+let randomIntervals = [0];
 /** @type {HTMLTextAreaElement} */
 const $inputText = document.querySelector('.js-input-text');
 /** @type {HTMLDivElement} */
@@ -67,15 +74,15 @@ function calculatePitchRate() {
 }
 
 /**
- * Returns the speak interval in miliseconds based on the value of the
+ * Returns the speak interval in milliseconds based on the value of the
  * $intervalSlider element in the page.
  *
  * If the $intervalSlider has not been changed, it returns 175 by default,
  * that is the value set in the HTML page.
  *
- * @returns {number} The speak interval in miliseconds.
+ * @returns {number} The speak interval in milliseconds.
  */
-function calculateIntervalInMiliseconds() {
+function calculateIntervalInMilliseconds() {
   return $intervalSlider.value;
 }
 
@@ -138,7 +145,7 @@ function cancelPreviousSpeakTimeouts() {
 function writeDialogueText() {
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
-  const intervalInMiliseconds = calculateIntervalInMiliseconds();
+  const intervalInMilliseconds = calculateIntervalInMilliseconds();
 
   $dialogueText.innerHTML = '';
 
@@ -148,7 +155,7 @@ function writeDialogueText() {
   ) => {
     speakTimeoutsIds.push(setTimeout(() => {
       $dialogueText.innerHTML += inputTextCharacter;
-    }, intervalInMiliseconds * inputTextCharacterIndex));
+    }, intervalInMilliseconds * inputTextCharacterIndex));
   });
 }
 
@@ -170,6 +177,16 @@ async function loadLocalVoices() {
 }
 
 /**
+ * Returns a random interval in milliseconds that 
+ */
+function createRandomIntervalInMilliseconds() {
+  const minimumIntervalInMilliseconds = 100;
+  const maximumIntervalInMilliseconds = 500;
+  return Math.floor(Math.random() * maximumIntervalInMilliseconds) +
+      minimumIntervalInMilliseconds;
+}
+
+/**
  * Creates and plays a speak with the input text inserted in the $inputText
  * element.
  *
@@ -178,20 +195,36 @@ async function loadLocalVoices() {
 async function speak() {
   await loadLocalVoices();
   cancelPreviousSpeakTimeouts();
+  randomIntervals = [0];
 
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
   const selectedVoiceDecodedAudioData =
       localVoices[$voiceSelector.value];
-  const intervalInMiliseconds = calculateIntervalInMiliseconds();
+  const intervalInMilliseconds = calculateIntervalInMilliseconds();
 
   inputTextCharacters.forEach((
-      _inputTextCharacter,
+      inputTextCharacter,
       inputTextCharacterIndex
   ) => {
+    const randomIntervalsSum =
+        randomIntervals.reduce((sum, randomInterval) => {
+          return randomInterval + sum;
+        });
+    console.log(randomIntervalsSum);
+    let interval;
+    if (inputTextCharacter === ' ') {
+      const randomInterval = createRandomIntervalInMilliseconds();
+      interval = intervalInMilliseconds * inputTextCharacterIndex +
+          randomInterval + randomIntervalsSum;
+      randomIntervals.push(randomInterval);
+    } else {
+      interval = intervalInMilliseconds * inputTextCharacterIndex +
+          randomIntervalsSum;
+    }
     speakTimeoutsIds.push(setTimeout(() => {
       playDecodedAudioData(selectedVoiceDecodedAudioData);
-    }, intervalInMiliseconds * inputTextCharacterIndex));
+    }, interval));
   });
 }
 
