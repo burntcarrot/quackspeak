@@ -195,7 +195,6 @@ function addRandomIntervalInMilliseconds() {
   const randomIntervalInMilliseconds =
       Math.floor(Math.random() * maximumIntervalValueInMilliseconds) +
       minimumIntervalValueInMilliseconds;
-  console.log(randomIntervalInMilliseconds);
 
   randomIntervalsInMilliseconds += randomIntervalInMilliseconds;
 }
