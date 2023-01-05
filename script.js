@@ -9,26 +9,27 @@
  *
  * This variable starts `undefined`, and is only defined when the user
  * interacts with the page by using the function
- * `loadLocalVoicesDecodedAudioData`. This is needed to fix the error `The
- * AudioContext was not allowed to start`, loading the local voices only when
- * the user interacts with the page.
+ * `loadLocalVoices`. This is needed to fix the warning `The AudioContext was
+ * not allowed to start`, by loading the local voices only when the user
+ * interacts with the page.
  */
 let localVoices;
 /**
- * An array that contains all the ids of the timeouts set by the `speak`
- * function. Each timeout is corresponded to the speak of one of the
- * characters inserted in the $inputText element.
+ * An array that contains all the ids of the timeouts set by the
+ * `speakAndWriteToDialogueText` function. Each timeout is corresponded to the
+ * speak of one of the characters inserted in the $inputText element.
  *
- * This array needs to exist to the code be able to cancel previous timeouts
- * avoiding the audio to overlap each other.
+ * This array needs to exist to the code be able to cancel previous timeouts,
+ * avoiding the audio to overlap.
  *
  * @type {Array<number>}
  */
 let speakTimeoutsIds = [];
 /**
  * A number that will keep the sum of all the random intervals added to the
- * timeouts of the `speak` function. This is needed to make the timeout time
- * work whenever a random interval has been added when a white space is hit.
+ * timeouts of the `speakAndWriteToDialogueText` function. This is needed to
+ * make the timeout time work whenever a random interval has been added when a
+ * white space is found.
  */
 let randomIntervalsInMilliseconds = 0;
 
@@ -52,13 +53,29 @@ $sayItButton.addEventListener('pointerdown', async () => {
 /**
  * Returns the input text that was inserted in the $inputText element.
  * It makes a treatment to remove white spaces that are on the start and end
- * of the text.
+ * of the text as well extra white spaces that has been added between the
+ * words.
  *
  * @returns {string} The input text that was inserted in the $inputText
  * element with some treatments.
  */
 function getInputText() {
-  return $inputText.value.trim();
+  const treatedCharacters = [];
+  let lastCharacter = '';
+  $inputText
+    .value
+    .trim()
+    .split('')
+    .forEach((inputTextCharacter) => {
+      if (
+          (lastCharacter === ' ' && inputTextCharacter !== ' ') ||
+          (lastCharacter !== ' ')
+      ) {
+        treatedCharacters.push(inputTextCharacter);
+      }
+      lastCharacter = inputTextCharacter;
+    });
+  return treatedCharacters.join('');
 }
 
 /**
@@ -202,6 +219,8 @@ async function speakAndWriteToDialogueText() {
   const inputTextCharacters = inputText.split('');
   const localVoiceSelected = localVoices[$voiceSelector.value];
   const intervalInMilliseconds = calculateIntervalInMilliseconds();
+
+  console.log(inputText);
 
   $dialogueText.innerHTML = '';
 
