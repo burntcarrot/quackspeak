@@ -157,8 +157,7 @@ function playDecodedAudioData(decodedAudioData) {
  * and make too much noise.
  */
 function cancelPreviousSpeakTimeouts() {
-  const hasSpeakTimeoutIds = speakTimeoutsIds.length > 0;
-  if (hasSpeakTimeoutIds) {
+  if (speakTimeoutsIds.length > 0) {
     speakTimeoutsIds.forEach((speakTimeoutId) => {
       clearTimeout(speakTimeoutId);
     });
@@ -190,11 +189,13 @@ async function loadLocalVoices() {
  * being applied whenever there is a white space in the input text.
  */
 function addRandomIntervalInMilliseconds() {
+  const intervalInMilliseconds = calculateIntervalInMilliseconds();
   const minimumIntervalValueInMilliseconds = 100;
-  const maximumIntervalValueInMilliseconds = 500;
+  const maximumIntervalValueInMilliseconds = 3e4 / intervalInMilliseconds;
   const randomIntervalInMilliseconds =
       Math.floor(Math.random() * maximumIntervalValueInMilliseconds) +
       minimumIntervalValueInMilliseconds;
+  console.log(randomIntervalInMilliseconds);
 
   randomIntervalsInMilliseconds += randomIntervalInMilliseconds;
 }
@@ -221,7 +222,7 @@ async function speakAndWriteToDialogueText() {
 
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
-  const localVoiceSelected = localVoices[$voiceSelector.value];
+  const selectedLocalVoice = localVoices[$voiceSelector.value];
   const intervalInMilliseconds = calculateIntervalInMilliseconds();
 
   $dialogueText.innerHTML = '';
@@ -235,7 +236,7 @@ async function speakAndWriteToDialogueText() {
     }
 
     speakTimeoutsIds.push(setTimeout(() => {
-      playDecodedAudioData(localVoiceSelected);
+      playDecodedAudioData(selectedLocalVoice);
       $dialogueText.innerHTML += inputTextCharacter;
     }, intervalInMilliseconds * inputTextCharacterIndex +
         randomIntervalsInMilliseconds
