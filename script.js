@@ -1,3 +1,4 @@
+//@ts-check
 /**
  * An object containing the decoded audio data of the voices that are
  * stored locally in the server.
@@ -24,16 +25,11 @@ let localVoices;
  */
 let speakTimeoutsIds = [];
 /**
- * An array that contains all the random intervals created whenever there is
- * an white space in the input text.
- *
- * This array starts with zero because it will be needed the sum of the values
- * that are inside it, and if there is no value, it returns an error when the
- * `reduce` function is used.
- *
- * @type {Array<number>}
+ * A number that will keep the sum of all the random intervals added to the
+ * timeouts of the `speak` function. This is needed to make the timeout time
+ * work whenever a random interval has been added when a white space is hit.
  */
-let randomIntervalsInMilliseconds = [0];
+let randomIntervalsInMilliseconds = 0;
 
 /** @type {HTMLTextAreaElement} */
 const $inputText = document.querySelector('.js-input-text');
@@ -185,8 +181,6 @@ async function loadLocalVoices() {
  * `randomIntervalsInMilliseconds` array that may be used by the `speak`
  * function to create a more natural feeling, being applied whenever there is
  * a white space in the input text.
- *
- * @returns {number} A random interval in milliseconds.
  */
 function addRandomIntervalInMilliseconds() {
   /**
@@ -199,36 +193,19 @@ function addRandomIntervalInMilliseconds() {
    * @type {number}
    **/
   const maximumIntervalInMilliseconds = 500;
-  const randomIntervalInMilliseconds = Math.floor(Math.random() * maximumIntervalInMilliseconds) +
+  const randomIntervalInMilliseconds =
+      Math.floor(Math.random() * maximumIntervalInMilliseconds) +
       minimumIntervalInMilliseconds;
 
-  randomIntervalsInMilliseconds.push(randomIntervalInMilliseconds);
-}
-
-/**
- * Returns the sum, in milliseconds, of all the values that are inside the
- * `randomIntervalsInMilliseconds` array. This value may be used to calculate
- * the timeouts of the `speak` function properly when some random interval has
- * been added.
- *
- * @returns {number} The sum, in milliseconds, of all the values that are
- * inside the `randomIntervalsInMilliseconds` array.
- */
-function calculateRandomIntervalsSum() {
-  return randomIntervalsInMilliseconds.reduce(
-      (sum, randomIntervalsInMillisecond) => {
-        return sum + randomIntervalsInMillisecond
-      }
-  );
+  randomIntervalsInMilliseconds += randomIntervalInMilliseconds;
 }
 
 /**
  * Cancels all the previous random intervals used, by reseting the
- * `randomIntervalsInMilliseconds` array to just the element zero, as it was
- * at the start.
+ * `randomIntervalsInMilliseconds` to zero, as it was at the start.
  */
 function cancelRandomIntervals() {
-  randomIntervalsInMilliseconds = [0];
+  randomIntervalsInMilliseconds = 0;
 }
 
 /**
@@ -255,10 +232,10 @@ async function speak() {
     if (inputTextCharacter === ' ') {
       addRandomIntervalInMilliseconds();
     }
-    const randomIntervalsSum = calculateRandomIntervalsSum();
+
     speakTimeoutsIds.push(setTimeout(() => {
       playDecodedAudioData(selectedVoiceDecodedAudioData);
-    }, intervalInMilliseconds * inputTextCharacterIndex + randomIntervalsSum));
+    }, intervalInMilliseconds * inputTextCharacterIndex + randomIntervalsInMilliseconds));
   });
 }
 
