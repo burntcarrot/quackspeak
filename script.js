@@ -51,6 +51,32 @@ $sayItButton.addEventListener('pointerdown', async () => {
 });
 
 /**
+ * Trims and remove extra white spaces that are between the words of a string.
+ *
+ * @param {string} text The text to be treated.
+ *
+ * @returns {string} The treated string.
+ */
+function trimAndRemoveExtraWhiteSpaces(text) {
+  const treatedCharacters = [];
+  let lastCharacter = '';
+  text
+    .trim()
+    .split('')
+    .forEach((character) => {
+      if (
+          (lastCharacter === ' ' && character !== ' ') ||
+          lastCharacter !== ' '
+      ) {
+        treatedCharacters.push(character);
+      }
+      lastCharacter = character;
+    });
+  return treatedCharacters.join('');
+
+}
+
+/**
  * Returns the input text that was inserted in the $inputText element.
  * It makes a treatment to remove white spaces that are on the start and end
  * of the text as well extra white spaces that has been added between the
@@ -60,22 +86,7 @@ $sayItButton.addEventListener('pointerdown', async () => {
  * element with some treatments.
  */
 function getInputText() {
-  const treatedCharacters = [];
-  let lastCharacter = '';
-  $inputText
-    .value
-    .trim()
-    .split('')
-    .forEach((inputTextCharacter) => {
-      if (
-          (lastCharacter === ' ' && inputTextCharacter !== ' ') ||
-          lastCharacter !== ' '
-      ) {
-        treatedCharacters.push(inputTextCharacter);
-      }
-      lastCharacter = inputTextCharacter;
-    });
-  return treatedCharacters.join('');
+  return trimAndRemoveExtraWhiteSpaces($inputText.value);
 }
 
 /**
