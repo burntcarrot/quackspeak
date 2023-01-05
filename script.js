@@ -1,4 +1,5 @@
 //@ts-check
+
 /**
  * An object containing the decoded audio data of the voices that are
  * stored locally in the server.
@@ -45,8 +46,7 @@ const $voiceSelector = document.querySelector('.js-voice-selector');
 const $sayItButton = document.querySelector('.js-say-it-button');
 
 $sayItButton.addEventListener('pointerdown', async () => {
-  await speak();
-  writeDialogueText();
+  await speakAndWriteToDialogueText();
 });
 
 /**
@@ -139,27 +139,6 @@ function cancelPreviousSpeakTimeouts() {
 }
 
 /**
- * Writes the input text inserted at the $inputText element to the
- * $dialogueText element.
- */
-function writeDialogueText() {
-  const inputText = getInputText();
-  const inputTextCharacters = inputText.split('');
-  const intervalInMilliseconds = calculateIntervalInMilliseconds();
-
-  $dialogueText.innerHTML = '';
-
-  inputTextCharacters.forEach((
-      inputTextCharacter,
-      inputTextCharacterIndex
-  ) => {
-    speakTimeoutsIds.push(setTimeout(() => {
-      $dialogueText.innerHTML += inputTextCharacter;
-    }, intervalInMilliseconds * inputTextCharacterIndex));
-  });
-}
-
-/**
  * Loads the local voices. This is needed to fix the error
  * `The AudioContext was not allowed to start`, loading the local voices only
  * when the user interact with the page.
@@ -214,16 +193,17 @@ function cancelRandomIntervals() {
  *
  * @async
  */
-async function speak() {
+async function speakAndWriteToDialogueText() {
   await loadLocalVoices();
   cancelPreviousSpeakTimeouts();
   cancelRandomIntervals();
 
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
-  const selectedVoiceDecodedAudioData =
-      localVoices[$voiceSelector.value];
+  const localVoiceSelected = localVoices[$voiceSelector.value];
   const intervalInMilliseconds = calculateIntervalInMilliseconds();
+
+  $dialogueText.innerHTML = '';
 
   inputTextCharacters.forEach((
       inputTextCharacter,
@@ -234,7 +214,8 @@ async function speak() {
     }
 
     speakTimeoutsIds.push(setTimeout(() => {
-      playDecodedAudioData(selectedVoiceDecodedAudioData);
+      playDecodedAudioData(localVoiceSelected);
+      $dialogueText.innerHTML += inputTextCharacter;
     }, intervalInMilliseconds * inputTextCharacterIndex + randomIntervalsInMilliseconds));
   });
 }
