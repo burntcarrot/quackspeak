@@ -32,6 +32,18 @@ let speakTimeoutsIds = [];
  * white space is found.
  */
 let randomIntervalsInMilliseconds = 0;
+/**
+ * A variable that hosts an AudioContext type to be used throughout the code.
+ * This variable needs to exists because, previously, creating an audio context
+ * to each function was causing the audios to overlap or mute in Chromium,
+ * Google Chrome and Brave. By using only one audio context solved that issue.
+ *
+ * This variable starts undefined by the same reason the `localVoices` variable
+ * does: to fix the warning `The AudioContext was not allowed to start`, by
+ * loading this audio context only when the user interacts with the page.
+ * @type {AudioContext}
+ */
+let audioContext;
 
 /** @type {HTMLTextAreaElement} */
 const $inputText = document.querySelector('.js-input-text');
@@ -129,7 +141,6 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
   const voiceFileDirectoryPath = 'assets/voices/' + fileName;
   const fileResponse = await fetch(voiceFileDirectoryPath);
   const arrayBuffer = await fileResponse.arrayBuffer();
-  const audioContext = new AudioContext();
 
   return audioContext.decodeAudioData(arrayBuffer);
 }
@@ -142,7 +153,6 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
  * `createDecodedAudioDataFromVoiceFile`.
  */
 function playDecodedAudioData(decodedAudioData) {
-  const audioContext = new AudioContext();
   const source = audioContext.createBufferSource();
   const pitchRate = calculatePitchRate();
 
@@ -174,6 +184,7 @@ function cancelPreviousSpeakTimeouts() {
  */
 async function loadLocalVoices() {
   if (!localVoices) {
+    audioContext = new AudioContext();
     localVoices = {
       quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
       bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
