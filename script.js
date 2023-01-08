@@ -1,3 +1,5 @@
+//@ts-check
+
 /**
  * An object containing the decoded audio data of the voices that are
  * stored locally in the server.
@@ -7,22 +9,41 @@
  *
  * This variable starts `undefined`, and is only defined when the user
  * interacts with the page by using the function
- * `loadLocalVoicesDecodedAudioData`. This is needed to fix the error `The
- * AudioContext was not allowed to start`, loading the local voices only when
- * the user interacts with the page.
+ * `loadLocalVoices`. This is needed to fix the warning `The AudioContext was
+ * not allowed to start`, by loading the local voices only when the user
+ * interacts with the page.
  */
 let localVoices;
 /**
- * An array that contains all the ids of the timeouts set by the `speak`
- * function. Each timeout is corresponded to the speak of one of the
- * characters inserted in the $inputText element.
+ * An array that contains all the ids of the timeouts set by the
+ * `speakAndWriteToDialogueText` function. Each timeout is corresponded to the
+ * speak of one of the characters inserted in the $inputText element.
  *
- * This array needs to exist to the code be able to cancel previous timeouts
- * avoiding the audio to overlap each other.
+ * This array needs to exist to the code be able to cancel previous timeouts,
+ * avoiding the audio to overlap.
  *
  * @type {Array<number>}
  */
 let speakTimeoutsIds = [];
+/**
+ * A number that will keep the sum of all the random intervals added to the
+ * timeouts of the `speakAndWriteToDialogueText` function. This is needed to
+ * make the timeout time work whenever a random interval has been added when a
+ * white space is found.
+ */
+let randomIntervalsInMilliseconds = 0;
+/**
+ * A variable that hosts an AudioContext type to be used throughout the code.
+ * This variable needs to exists because, previously, creating an audio context
+ * to each function was causing the audios to overlap or mute in Chromium,
+ * Google Chrome and Brave. By using only one audio context solved that issue.
+ *
+ * This variable starts undefined by the same reason the `localVoices` variable
+ * does: to fix the warning `The AudioContext was not allowed to start`, by
+ * loading this audio context only when the user interacts with the page.
+ * @type {AudioContext}
+ */
+let audioContext;
 
 /** @type {HTMLTextAreaElement} */
 const $inputText = document.querySelector('.js-input-text');
@@ -38,20 +59,46 @@ const $voiceSelector = document.querySelector('.js-voice-selector');
 const $sayItButton = document.querySelector('.js-say-it-button');
 
 $sayItButton.addEventListener('pointerdown', async () => {
-  await speak();
-  writeDialogueText();
+  await speakAndWriteDialogue();
 });
 
 /**
+ * Trims and remove extra white spaces that are between the words of a string.
+ *
+ * @param {string} text The text to be treated.
+ *
+ * @returns {string} The treated string.
+ */
+function removeWhiteSpaces(text) {
+  const treatedCharacters = [];
+  let lastCharacter = '';
+  text
+    .trim()
+    .split('')
+    .forEach((character) => {
+      if (
+          (lastCharacter === ' ' && character !== ' ') ||
+          lastCharacter !== ' '
+      ) {
+        treatedCharacters.push(character);
+      }
+      lastCharacter = character;
+    });
+  return treatedCharacters.join('');
+
+}
+
+/**
  * Returns the input text that was inserted in the $inputText element.
- * It makes a treatment to remove whitespaces that are on the start and end
- * of the text.
+ *
+ * It removes white spaces from the start and end of the text as well as extra
+ * white spaces that have been added between the words.
  *
  * @returns {string} The input text that was inserted in the $inputText
  * element with some treatments.
  */
 function getInputText() {
-  return $inputText.value.trim();
+  return removeWhiteSpaces($inputText.value);
 }
 
 /**
@@ -63,20 +110,20 @@ function getInputText() {
  * @returns {number} The pitch rate.
  */
 function calculatePitchRate() {
-  return 0.4 * 4 ** $pitchSlider.value + 0.2;
+  return 0.4 * 4 ** + $pitchSlider.value + 0.2;
 }
 
 /**
- * Returns the speak interval in miliseconds based on the value of the
+ * Returns the speak interval in milliseconds based on the value of the
  * $intervalSlider element in the page.
  *
  * If the $intervalSlider has not been changed, it returns 175 by default,
  * that is the value set in the HTML page.
  *
- * @returns {number} The speak interval in miliseconds.
+ * @returns {number} The speak interval in milliseconds.
  */
-function calculateIntervalInMiliseconds() {
-  return $intervalSlider.value;
+function calculateIntervalInMilliseconds() {
+  return + $intervalSlider.value;
 }
 
 /**
@@ -94,7 +141,6 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
   const voiceFileDirectoryPath = 'assets/voices/' + fileName;
   const fileResponse = await fetch(voiceFileDirectoryPath);
   const arrayBuffer = await fileResponse.arrayBuffer();
-  const audioContext = new AudioContext();
 
   return audioContext.decodeAudioData(arrayBuffer);
 }
@@ -107,7 +153,6 @@ async function createDecodedAudioDataFromVoiceFile(fileName) {
  * `createDecodedAudioDataFromVoiceFile`.
  */
 function playDecodedAudioData(decodedAudioData) {
-  const audioContext = new AudioContext();
   const source = audioContext.createBufferSource();
   const pitchRate = calculatePitchRate();
 
@@ -122,8 +167,7 @@ function playDecodedAudioData(decodedAudioData) {
  * and make too much noise.
  */
 function cancelPreviousSpeakTimeouts() {
-  const hasSpeakTimeoutIds = speakTimeoutsIds.length > 0;
-  if (hasSpeakTimeoutIds) {
+  if (speakTimeoutsIds.length > 0) {
     speakTimeoutsIds.forEach((speakTimeoutId) => {
       clearTimeout(speakTimeoutId);
     });
@@ -132,28 +176,7 @@ function cancelPreviousSpeakTimeouts() {
 }
 
 /**
- * Writes the input text inserted at the $inputText element to the
- * $dialogueText element.
- */
-function writeDialogueText() {
-  const inputText = getInputText();
-  const inputTextCharacters = inputText.split('');
-  const intervalInMiliseconds = calculateIntervalInMiliseconds();
-
-  $dialogueText.innerHTML = '';
-
-  inputTextCharacters.forEach((
-      inputTextCharacter,
-      inputTextCharacterIndex
-  ) => {
-    speakTimeoutsIds.push(setTimeout(() => {
-      $dialogueText.innerHTML += inputTextCharacter;
-    }, intervalInMiliseconds * inputTextCharacterIndex));
-  });
-}
-
-/**
- * Loads the local voices. This is needed to fix the error
+ * Loads the local voices. This is needed to fix the warning
  * `The AudioContext was not allowed to start`, loading the local voices only
  * when the user interact with the page.
  *
@@ -161,6 +184,7 @@ function writeDialogueText() {
  */
 async function loadLocalVoices() {
   if (!localVoices) {
+    audioContext = new AudioContext();
     localVoices = {
       quack: await createDecodedAudioDataFromVoiceFile('quack.mp3'),
       bark: await createDecodedAudioDataFromVoiceFile('bark.wav'),
@@ -170,28 +194,63 @@ async function loadLocalVoices() {
 }
 
 /**
+ * Adds a random interval, in milliseconds, into the
+ * `randomIntervalsInMilliseconds` number that may be used by the
+ * `speakAndWriteToDialogueText` function to create a more natural feeling,
+ * being applied whenever there is a white space in the input text.
+ */
+function addRandomIntervalInMilliseconds() {
+  const intervalInMilliseconds = calculateIntervalInMilliseconds();
+  const minimumIntervalValueInMilliseconds = 100;
+  const maximumIntervalValueInMilliseconds = 3e4 / intervalInMilliseconds;
+  const randomIntervalInMilliseconds =
+      Math.floor(Math.random() * maximumIntervalValueInMilliseconds) +
+      minimumIntervalValueInMilliseconds;
+
+  randomIntervalsInMilliseconds += randomIntervalInMilliseconds;
+}
+
+/**
+ * Cancels all the previous random intervals used, by reseting the
+ * `randomIntervalsInMilliseconds` to zero, as it was at the start.
+ */
+function cancelRandomIntervals() {
+  randomIntervalsInMilliseconds = 0;
+}
+
+/**
  * Creates and plays a speak with the input text inserted in the $inputText
- * element.
+ * element. It also, writes the text to the $dialogueText element at the same
+ * time it is speaking.
  *
  * @async
  */
-async function speak() {
+async function speakAndWriteDialogue() {
   await loadLocalVoices();
   cancelPreviousSpeakTimeouts();
+  cancelRandomIntervals();
 
   const inputText = getInputText();
   const inputTextCharacters = inputText.split('');
-  const selectedVoiceDecodedAudioData =
-      localVoices[$voiceSelector.value];
-  const intervalInMiliseconds = calculateIntervalInMiliseconds();
+  const selectedLocalVoice = localVoices[$voiceSelector.value];
+  const intervalInMilliseconds = calculateIntervalInMilliseconds();
+
+  $dialogueText.innerHTML = '';
 
   inputTextCharacters.forEach((
-      _inputTextCharacter,
+      inputTextCharacter,
       inputTextCharacterIndex
   ) => {
+    if (inputTextCharacter === ' ') {
+      addRandomIntervalInMilliseconds();
+    }
+
     speakTimeoutsIds.push(setTimeout(() => {
-      playDecodedAudioData(selectedVoiceDecodedAudioData);
-    }, intervalInMiliseconds * inputTextCharacterIndex));
+      playDecodedAudioData(selectedLocalVoice);
+      $dialogueText.innerHTML += inputTextCharacter;
+    }, intervalInMilliseconds * inputTextCharacterIndex +
+        randomIntervalsInMilliseconds
+    ));
   });
 }
 
