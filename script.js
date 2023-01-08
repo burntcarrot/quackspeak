@@ -59,7 +59,7 @@ const $voiceSelector = document.querySelector('.js-voice-selector');
 const $sayItButton = document.querySelector('.js-say-it-button');
 
 $sayItButton.addEventListener('pointerdown', async () => {
-  await speakAndWriteToDialogueText();
+  await speakAndWriteDialogue();
 });
 
 /**
@@ -69,7 +69,7 @@ $sayItButton.addEventListener('pointerdown', async () => {
  *
  * @returns {string} The treated string.
  */
-function trimAndRemoveExtraWhiteSpaces(text) {
+function removeWhiteSpaces(text) {
   const treatedCharacters = [];
   let lastCharacter = '';
   text
@@ -90,15 +90,15 @@ function trimAndRemoveExtraWhiteSpaces(text) {
 
 /**
  * Returns the input text that was inserted in the $inputText element.
- * It makes a treatment to remove white spaces that are on the start and end
- * of the text as well extra white spaces that has been added between the
- * words.
+ *
+ * It removes white spaces from the start and end of the text as well as extra
+ * white spaces that have been added between the words.
  *
  * @returns {string} The input text that was inserted in the $inputText
  * element with some treatments.
  */
 function getInputText() {
-  return trimAndRemoveExtraWhiteSpaces($inputText.value);
+  return removeWhiteSpaces($inputText.value);
 }
 
 /**
@@ -225,7 +225,7 @@ function cancelRandomIntervals() {
  *
  * @async
  */
-async function speakAndWriteToDialogueText() {
+async function speakAndWriteDialogue() {
   await loadLocalVoices();
   cancelPreviousSpeakTimeouts();
   cancelRandomIntervals();
