@@ -4,6 +4,8 @@ Text-to-speech using ducks. 🦆
 
 ![Preview](assets/preview.png)
 
+[![justforfunnoreally.dev badge](https://img.shields.io/badge/justforfunnoreally-dev-9ff)](https://justforfunnoreally.dev)
+
 ## Why?
 
 Why not? Just type and hear some quacks.
